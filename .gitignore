@@ -1,0 +1,5 @@
+venv/*
+*.iml
+.idea
+.pyc
+minimax/__pycache__/*
