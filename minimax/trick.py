@@ -32,9 +32,9 @@ class Trick:
         return self._rule.calc_points(self._played_cards, self._is_last_round)
 
     def add_card(self, card: int):
-        self._played_cards[self._get_index_of_next_missing_card()] = card
+        self._played_cards[self.get_index_of_next_missing_card()] = card
 
-    def _get_index_of_next_missing_card(self):
+    def get_index_of_next_missing_card(self):
         for index in range(len(self._played_cards)):
             if self._played_cards[index] == MISSING_CARD:
                 return index
@@ -44,14 +44,17 @@ class Trick:
         return MISSING_CARD not in self._played_cards
 
     def is_in_process(self) -> bool:
-        return self._get_index_of_next_missing_card() > 0
+        return self.get_index_of_next_missing_card() > 0
 
     def get_last_played_card(self) -> int:
         if self.is_completed():
             return self._played_cards[NBR_OF_CARDS_IN_ONE_TRICK - 1]
         elif self.is_in_process():
-            return self._played_cards[self._get_index_of_next_missing_card() - 1]
+            return self._played_cards[self.get_index_of_next_missing_card() - 1]
         return -1
+
+    def asArray(self) -> np.ndarray:
+        return self._played_cards
 
     def copy(self) -> Trick:
         return Trick(self._played_cards.copy(), self._first_player, self._trump, self._is_last_round)

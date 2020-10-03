@@ -1,32 +1,43 @@
 from __future__ import annotations
 
+import logging
+
 import numpy as np
 from jass.game.game_state import GameState
-from jass.game.game_state_util import observation_from_state
 from jass.game.rule_schieber import RuleSchieber
+
+from minimax.jass_carpet import JassCarpet
 
 
 class ValidCardHolder:
 
-    def __init__(self, valid_cards: np.array):
-        self._valid_cards = valid_cards
+    def __init__(self, hands: np.array, trump: int):
+        self._hands = hands
+        self._trump = trump
+        self._rule = RuleSchieber()
 
     @classmethod
     def from_game_state(cls, game_state: GameState):
-        rule: RuleSchieber = RuleSchieber()
-        # 4 player, 16 hot encoded cards
-        valid_cards = np.zeros(shape=(4, 36))
-        valid_cards[0] = rule.get_valid_cards_from_obs(observation_from_state(game_state, 0))
-        valid_cards[1] = rule.get_valid_cards_from_obs(observation_from_state(game_state, 1))
-        valid_cards[2] = rule.get_valid_cards_from_obs(observation_from_state(game_state, 2))
-        valid_cards[3] = rule.get_valid_cards_from_obs(observation_from_state(game_state, 3))
-        return cls(valid_cards)
+        # 4 player, 36 hot encoded cards
+        hands = game_state.hands.copy()
+        trump = game_state.trump
+        return cls(hands, trump)
 
-    def get_valid_cards(self, player: int) -> np.array:
-        return self._valid_cards[player]
+    def get_valid_cards(self, jass_carpet: JassCarpet) -> np.array:
+        hand = self._hands[jass_carpet.get_current_player()]
+        current_trick = jass_carpet.get_last_trick()
 
-    def mark_card_as_invalid(self, player, card) -> None:
-        self._valid_cards[player][card] = 0
+        if current_trick.is_completed():
+            return self._rule.get_valid_cards(hand, [-1, -1, -1, -1], 0, self._trump)
+        else:
+            return self._rule.get_valid_cards(hand, current_trick.asArray(),
+                                              current_trick.get_index_of_next_missing_card(), self._trump)
+
+    def mark_card_as_invalid(self, player: int, card: int) -> None:
+        self.get_hand(player)[card] = 0
 
     def copy(self) -> ValidCardHolder:
-        return ValidCardHolder(self._valid_cards.copy())
+        return ValidCardHolder(self._hands.copy(), self._trump)
+
+    def get_hand(self, player: int) -> np.ndarray:
+        return self._hands[player]

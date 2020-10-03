@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import logging
 from typing import List
 
-from jass.game.game_state import GameState
+from jass.game.const import color_masks
 from jass.game.rule_schieber import RuleSchieber
 
 from minimax.jass_carpet import JassCarpet
@@ -18,13 +19,21 @@ class MinimaxNode:
         self._valid_card_holder = valid_card_holder
         self._child_nodes = None
         self._heuristic_value = None
+        # log actions
+        self._logger = logging.getLogger(__name__)
 
     def is_leaf_node(self) -> bool:
         """Does node have child elements => is last node in search tree"""
         return len(self.get_child_nodes()) == 0
 
     def calculate_heuristic(self, player_view: int) -> int:
-        return self._jass_carpet.calculate_heuristic(player_view)
+        hand = self._valid_card_holder.get_hand(player_view)
+        trump = self._jass_carpet.get_trump()
+        if trump <= 4:
+            return self._jass_carpet.calculate_heuristic(player_view) + \
+                   (hand * color_masks[self._jass_carpet.get_trump()]).sum() / 9 / 2
+        else:
+            return self._jass_carpet.calculate_heuristic(player_view)
 
     def get_child_nodes(self) -> List[MinimaxNode]:
         # lazy load child nodes
@@ -33,7 +42,7 @@ class MinimaxNode:
         return self._child_nodes
 
     def _determine_child_nodes(self) -> List[MinimaxNode]:
-        valid_cards = self._valid_card_holder.get_valid_cards(self._jass_carpet.get_current_player())
+        valid_cards = self._valid_card_holder.get_valid_cards(self._jass_carpet)
         if EXISTING_CARD in valid_cards:
             child_nodes: List[MinimaxNode] = []
             for card in range(len(valid_cards)):

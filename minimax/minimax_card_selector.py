@@ -2,6 +2,8 @@ import logging
 import sys
 
 from jass.game.game_state import GameState
+from jass.game.game_state_util import observation_from_state
+from jass.game.rule_schieber import RuleSchieber
 
 from minimax.const import MISSING_CARD
 from minimax.jass_carpet import JassCarpet
@@ -27,9 +29,12 @@ class MinimaxCardSelector:
         # use smallest int value
         best_heuristic_value: int = -(sys.maxsize - 1)
         best_card: int = MISSING_CARD
+        alpha = self._start_alpha
         for child_node in root_node.get_child_nodes():
             heuristic_value = self._recursive_min_with_pruning(child_node, self._nbr_of_cards_to_look_ahead - 1,
-                                                               self._start_alpha, self._start_beta)
+                                                               alpha, self._start_beta)
+            alpha = max(alpha, heuristic_value)
+
             if heuristic_value > best_heuristic_value:
                 best_heuristic_value = heuristic_value
                 best_card = child_node.get_card()
@@ -38,7 +43,6 @@ class MinimaxCardSelector:
     def _recursive_max_with_pruning(self, node: MinimaxNode, depth: int, alpha: int, beta: int) -> int:
         if depth == 0 or node.is_leaf_node():
             heuristic_value = node.calculate_heuristic(self._game_state.player)
-            self._logger.debug("max node " + str(node._jass_carpet) + " heuristic: " + str(heuristic_value))
             return heuristic_value
 
         for child_node in node.get_child_nodes():
@@ -50,7 +54,6 @@ class MinimaxCardSelector:
     def _recursive_min_with_pruning(self, node: MinimaxNode, depth: int, alpha: int, beta: int) -> int:
         if depth == 0 or node.is_leaf_node():
             heuristic_value = node.calculate_heuristic(self._game_state.player)
-            self._logger.debug("min node " + str(node._jass_carpet) + " heuristic: " + str(heuristic_value))
             return heuristic_value
 
         for child_node in node.get_child_nodes():
