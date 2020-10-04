@@ -3,6 +3,7 @@ venv/*
 .idea
 .pyc
 minimax/__pycache__/*
+*/__pycache__/*
 
 
 

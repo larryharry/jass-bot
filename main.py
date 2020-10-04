@@ -4,6 +4,7 @@ from jass.agents.agent_random_schieber import AgentRandomSchieber
 from jass.arena.arena import Arena
 
 from minimax.agent_minimax_schieber import AgentMinimaxSchieber
+from montecarlo.agent_monte_carlo_schieber import AgentMonteCarloSchieber
 
 
 def main():
@@ -12,9 +13,9 @@ def main():
     arena = Arena(1)
 
     player_1 = AgentRandomSchieber()
-    player_2 = AgentMinimaxSchieber(arena._game._state)
+    player_2 = AgentMonteCarloSchieber(arena._game._state)
     player_3 = AgentRandomSchieber()
-    player_4 = AgentMinimaxSchieber(arena._game._state)
+    player_4 = AgentMonteCarloSchieber(arena._game._state)
 
     arena.set_players(player_1, player_2, player_3, player_4)
     print('Playing {} games'.format(arena.nr_games_to_play))
