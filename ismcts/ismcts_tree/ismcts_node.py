@@ -35,28 +35,28 @@ class ISMCTSNode:
         if self._parent_node is not None:
             self._parent_node.update(payoff)
 
-    def has_possible_child_nodes(self) -> bool:
-        return len(self.get_possible_child_nodes()) != 0
+    def has_child_nodes(self) -> bool:
+        return len(self.get_child_nodes()) != 0
 
-    def get_possible_child_nodes(self) -> List[ISMCTSNode]:
+    def get_child_nodes(self) -> List[ISMCTSNode]:
         return self._possible_child_nodes
 
-    def has_child_nodes(self, valid_card_holder: ValidCardHolder) -> bool:
-        return len(self.get_child_nodes(valid_card_holder)) != 0
+    def has_visible_child_nodes(self, valid_card_holder: ValidCardHolder) -> bool:
+        return len(self.get_visible_child_nodes(valid_card_holder)) != 0
 
-    def get_child_nodes(self, valid_card_holder: ValidCardHolder) -> List[ISMCTSNode]:
+    def get_visible_child_nodes(self, valid_card_holder: ValidCardHolder) -> List[ISMCTSNode]:
         return list(filter(lambda child: child.is_visible(valid_card_holder), self._possible_child_nodes))
 
-    def has_explored_child_nodes(self, valid_card_holder: ValidCardHolder) -> bool:
-        return len(self.get_explored_child_nodes(valid_card_holder)) != 0
+    def get_visible_explored_child_nodes(self, valid_card_holder: ValidCardHolder) -> bool:
+        return len(self.get_visible_explored_child_nodes(valid_card_holder)) != 0
 
-    def get_explored_child_nodes(self, valid_card_holder: ValidCardHolder) -> List[ISMCTSNode]:
+    def get_visible_explored_child_nodes(self, valid_card_holder: ValidCardHolder) -> List[ISMCTSNode]:
         return list(filter(lambda child: child.is_visible(valid_card_holder) and child.is_explored, self._possible_child_nodes))
 
-    def has_unexplored_child_nodes(self, valid_card_holder: ValidCardHolder) -> bool:
-        return len(self.get_unexplored_child_nodes(valid_card_holder)) != 0
+    def get_visible_unexplored_child_nodes(self, valid_card_holder: ValidCardHolder) -> bool:
+        return len(self.get_visible_unexplored_child_nodes(valid_card_holder)) != 0
 
-    def get_unexplored_child_nodes(self, valid_card_holder: ValidCardHolder) -> List[ISMCTSNode]:
+    def get_visible_unexplored_child_nodes(self, valid_card_holder: ValidCardHolder) -> List[ISMCTSNode]:
         return list(filter(lambda child: child.is_visible(valid_card_holder) and not child.is_explore, self._possible_child_nodes))
 
     def is_visible(self, valid_card_holder: ValidCardHolder) -> bool:

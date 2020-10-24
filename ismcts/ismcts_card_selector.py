@@ -30,9 +30,9 @@ class ISMCTSCardSelector:
             if t_end < time.time():
                 break
 
-        best_card = self._root_node.get_possible_child_nodes()[0].last_played_card
+        best_card = self._root_node.get_child_nodes()[0].last_played_card
         highest_nbr_of_played_games = 0
-        for subtree_root_node in self._root_node.get_possible_child_nodes():
+        for subtree_root_node in self._root_node.get_child_nodes():
             if subtree_root_node.nbr_of_node_was_played > highest_nbr_of_played_games:
                 highest_nbr_of_played_games = subtree_root_node.nbr_of_node_was_played
                 best_card = subtree_root_node.last_played_card
