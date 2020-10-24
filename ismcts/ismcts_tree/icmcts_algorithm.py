@@ -25,13 +25,13 @@ class ISMCTSAlgorithm:
 
     def _selection(self, valid_card_holder: ValidCardHolder):
         node_to_expand = self._tree_policy.selection(self._root_node.get_child_nodes())
-        while not node_to_expand.get_visible_unexplored_child_nodes(valid_card_holder) and \
-                node_to_expand.get_visible_explored_child_nodes(valid_card_holder):
+        while not node_to_expand.has_visible_unexplored_child_nodes(valid_card_holder) and \
+                node_to_expand.has_visible_explored_child_nodes(valid_card_holder):
             node_to_expand = self._tree_policy.selection(node_to_expand.get_visible_explored_child_nodes(valid_card_holder))
         return node_to_expand
 
     def _expansion(self, node_to_expand: ISMCTSNode, valid_card_holder: ValidCardHolder):
-        if node_to_expand.get_visible_unexplored_child_nodes(valid_card_holder):
+        if node_to_expand.has_visible_unexplored_child_nodes(valid_card_holder):
             node_to_explore = self._default_policy.selection(node_to_expand
                                                              .get_visible_unexplored_child_nodes(valid_card_holder))
             payoff = self._simulation(node_to_explore, valid_card_holder)

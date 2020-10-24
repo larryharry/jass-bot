@@ -47,20 +47,22 @@ class ISMCTSNode:
     def get_visible_child_nodes(self, valid_card_holder: ValidCardHolder) -> List[ISMCTSNode]:
         return list(filter(lambda child: child.is_visible(valid_card_holder), self._possible_child_nodes))
 
-    def get_visible_explored_child_nodes(self, valid_card_holder: ValidCardHolder) -> bool:
+    def has_visible_explored_child_nodes(self, valid_card_holder: ValidCardHolder) -> bool:
         return len(self.get_visible_explored_child_nodes(valid_card_holder)) != 0
 
     def get_visible_explored_child_nodes(self, valid_card_holder: ValidCardHolder) -> List[ISMCTSNode]:
-        return list(filter(lambda child: child.is_visible(valid_card_holder) and child.is_explored, self._possible_child_nodes))
+        return list(filter(lambda child: child.is_visible(valid_card_holder) and child.is_explored,
+                           self._possible_child_nodes))
 
-    def get_visible_unexplored_child_nodes(self, valid_card_holder: ValidCardHolder) -> bool:
+    def has_visible_unexplored_child_nodes(self, valid_card_holder: ValidCardHolder) -> bool:
         return len(self.get_visible_unexplored_child_nodes(valid_card_holder)) != 0
 
     def get_visible_unexplored_child_nodes(self, valid_card_holder: ValidCardHolder) -> List[ISMCTSNode]:
-        return list(filter(lambda child: child.is_visible(valid_card_holder) and not child.is_explore, self._possible_child_nodes))
+        return list(filter(lambda child: child.is_visible(valid_card_holder) and not child.is_explore,
+                           self._possible_child_nodes))
 
     def is_visible(self, valid_card_holder: ValidCardHolder) -> bool:
-        return self._node_state.information_set.does_contain(Hands.by_hot_encoded(valid_card_holder.get_hands()))
+        return self._node_state.information_set.does_contain(valid_card_holder.get_hands())
 
     def mark_as_explored(self):
         self._is_explored = True
