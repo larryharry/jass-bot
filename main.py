@@ -4,8 +4,6 @@ from jass.agents.agent_random_schieber import AgentRandomSchieber
 from jass.arena.arena import Arena
 
 from ismcts.agent_ismcts_schieber import AgentISMCTSSchieber
-from minimax.agent_minimax_schieber import AgentMinimaxSchieber
-from montecarlo.agent_monte_carlo_schieber import AgentMonteCarloSchieber
 
 
 def main():

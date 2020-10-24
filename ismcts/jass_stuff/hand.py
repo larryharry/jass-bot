@@ -22,10 +22,11 @@ class Hand:
         return cls(np.full(36, 0))
 
     @classmethod
-    def by_indices(cls, cards_indices: List[int] = None):
-        cards = cls.empty()
-        cards[cards_indices] = 1
-        return cls(cards)
+    def by_cards(cls, cards: List[int] = None):
+        hot_encoded_cards = np.full(36, 0)
+        for card in cards:
+            hot_encoded_cards[card] = 1
+        return cls.by_hot_encoded(hot_encoded_cards)
 
     def add_card(self, card: int):
         if self._cards[card] == 1:
@@ -45,5 +46,9 @@ class Hand:
                 return False
         return True
 
+    def asArray(self):
+        return self._cards
+
     def copy(self) -> Hand:
         return Hand.by_hot_encoded(self._cards.copy())
+

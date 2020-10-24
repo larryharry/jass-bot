@@ -2,8 +2,8 @@ import numpy as np
 from jass.game.const import next_player
 from jass.game.game_observation import GameObservation
 
-from ismcts.const import MISSING_CARD
 from ismcts.information_set.information_set_observation import InformationSetObservation
+from ismcts.jass_stuff.const import MISSING_CARD_IN_TRICK
 
 
 class InformationSetObservationFactory:
@@ -29,7 +29,7 @@ class InformationSetObservationFactory:
     def _remove_cards_already_played(self, undistributed_cards: np.ndarray):
         for trick in self._game_obs.tricks:
             for card in trick:
-                if card == MISSING_CARD:
+                if card == MISSING_CARD_IN_TRICK:
                     return
                 undistributed_cards[card] = 0
 
@@ -38,7 +38,7 @@ class InformationSetObservationFactory:
             if self._game_obs.hand[card_index] != 0:
                 undistributed_cards[card_index] = 0
 
-    def _get_number_of_cards_in_hands(self) -> int:
+    def _get_number_of_cards_in_hands(self) -> np.ndarray:
         number_of_cards_in_hands = np.full(4, 0)
         number_of_cards_in_player_view_hand = self._game_obs.hand.sum()
         player_index = self._game_obs.trick_first_player[self._game_obs.nr_tricks]
@@ -52,3 +52,4 @@ class InformationSetObservationFactory:
             else:
                 number_of_cards_in_hands[player_index] = number_of_cards_in_player_view_hand
             player_index = next_player[player_index]
+        return number_of_cards_in_hands

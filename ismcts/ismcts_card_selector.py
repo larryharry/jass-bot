@@ -3,8 +3,8 @@ import time
 
 from jass.game.game_observation import GameObservation
 
-from ismcts.default_policy_random import DefaultPolicyRandom
 from ismcts.information_set.information_set_factory import InformationSetFactory
+from ismcts.ismcts_tree.default_policy_random import DefaultPolicyRandom
 from ismcts.ismcts_tree.icmcts_algorithm import ISMCTSAlgorithm
 from ismcts.ismcts_tree.ismcts_node import ISMCTSNode
 from ismcts.ismcts_tree.ismcts_node_state import ISMCTSNodeState
@@ -34,6 +34,6 @@ class ISMCTSCardSelector:
         highest_nbr_of_played_games = 0
         for subtree_root_node in self._root_node.get_possible_child_nodes():
             if subtree_root_node.nbr_of_node_was_played > highest_nbr_of_played_games:
-                highest_nbr_of_played_games = subtree_root_node.n
+                highest_nbr_of_played_games = subtree_root_node.nbr_of_node_was_played
                 best_card = subtree_root_node.last_played_card
         return best_card
