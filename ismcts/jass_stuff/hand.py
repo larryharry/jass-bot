@@ -5,6 +5,8 @@ from typing import List
 
 import numpy as np
 
+from ismcts.jass_stuff.const import EXISTING_CARD
+
 
 class Hand:
 
@@ -35,16 +37,17 @@ class Hand:
             self._cards[card] = 1
 
     def remove_card(self, card: int):
-        if self._cards[card] == 0:
-            raise Exception('You cant remove an non existing card! card {}'.format(card))
-        else:
-            self._cards[card] = 0
+        self._cards[card] = 0
 
     def is_fully_covered_by(self, hand: Hand) -> bool:
-        for card in hand._cards:
-            if card not in self._cards:
+        for card in [i for i, card in enumerate(self._cards) if card == 1]:
+            if hand._cards[card] == 0:
                 return False
         return True
+
+    @property
+    def number_of_cards(self):
+        return np.count_nonzero(self._cards == 1)
 
     def asArray(self):
         return self._cards
@@ -52,3 +55,10 @@ class Hand:
     def copy(self) -> Hand:
         return Hand.by_hot_encoded(self._cards.copy())
 
+    def take_cards_from(self, cards) -> int:
+        number_of_cards_removed = 0
+        for card in [i for i, card in enumerate(self._cards) if card == 1]:
+            if cards[card] == EXISTING_CARD:
+                cards[card] = 0
+                number_of_cards_removed += 1
+        return number_of_cards_removed

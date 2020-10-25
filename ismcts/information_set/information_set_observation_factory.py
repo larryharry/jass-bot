@@ -4,6 +4,7 @@ from jass.game.game_observation import GameObservation
 
 from ismcts.information_set.information_set_observation import InformationSetObservation
 from ismcts.jass_stuff.const import MISSING_CARD_IN_TRICK
+from ismcts.jass_stuff.hand import Hand
 
 
 class InformationSetObservationFactory:
@@ -14,7 +15,7 @@ class InformationSetObservationFactory:
     def create(self) -> InformationSetObservation:
         info_set_obs = InformationSetObservation()
         info_set_obs.view_player = self._game_obs.player
-        info_set_obs.view_player_hand = self._game_obs.hand
+        info_set_obs.view_player_hand = Hand.by_hot_encoded(self._game_obs.hand)
         info_set_obs.current_player = self._game_obs.player
         info_set_obs.not_allocated_cards = self._get_undistributed_cards()
         info_set_obs.nbr_of_cards_in_hands = self._get_number_of_cards_in_hands()

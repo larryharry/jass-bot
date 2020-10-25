@@ -4,6 +4,8 @@ import numpy as np
 from jass.game.const import partner_player, next_player
 from jass.game.game_observation import GameObservation
 
+from ismcts.jass_stuff.const import MISSING_CARD_IN_TRICK
+from ismcts.jass_stuff.hand import Hand
 from ismcts.jass_stuff.trick import Trick
 
 
@@ -43,17 +45,27 @@ class JassCarpet:
             self._current_player = next_player[first_player]
         else:
             last_trick.add_card(card)
-            self._current_player = next_player[self._current_player]
+            if last_trick.is_completed:
+                self._current_player = last_trick.winner
+            else:
+                self._current_player = next_player[self._current_player]
 
     def calculate_heuristic(self, player_view: int) -> np.ndarray:
         heuristic_value = np.array([0, 0])
         for trick in self._tricks:
-            winner = trick.get_winner()
+            winner = trick.winner
             if player_view == winner or partner_player[player_view] == winner:
                 heuristic_value[0] += 1
             else:
                 heuristic_value[1] += 1
         return heuristic_value
+
+    def remove_already_played_card_from(self, hand: Hand):
+        for trick in self._tricks:
+            for card in trick.asArray():
+                if card == MISSING_CARD_IN_TRICK:
+                    return
+                hand.remove_card(card)
 
     @property
     def last_trick(self) -> Trick:
@@ -79,4 +91,4 @@ class JassCarpet:
         copy_tricks = np.array([])
         for trick in self._tricks:
             copy_tricks = np.append(copy_tricks, trick.copy())
-        return JassCarpet(copy_tricks, self._current_player, self._trump)
+        return JassCarpet(copy_tricks, self._last_played_card, self._current_player, self._trump)

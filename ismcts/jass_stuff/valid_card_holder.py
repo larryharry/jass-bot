@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import logging
+from random import sample
+
 import numpy as np
 from jass.game.game_observation import GameObservation
 from jass.game.game_state import GameState
 from jass.game.rule_schieber import RuleSchieber
-from numpy import random
 
-from ismcts.information_set.information_set_factory import InformationSetFactory
+from ismcts.information_set.information_set_observation_factory import InformationSetObservationFactory
 from ismcts.jass_stuff.const import EMPTY_TRICK
 from ismcts.jass_stuff.hand import Hand
 from ismcts.jass_stuff.hands import Hands
@@ -51,7 +53,25 @@ class ValidCardHolder:
 
     @classmethod
     def random_from_obs(cls, obs: GameObservation):
-        info_set = InformationSetFactory(obs).create()
-        hands = random.choice(info_set.possible_hands)
+        inf_set_obs = InformationSetObservationFactory(obs).create()
+        not_allocated_cards_indices = [i for i, card in enumerate(inf_set_obs.not_allocated_cards)
+                                       if card == 1]
+        sampled_not_allocated_cards = sample(not_allocated_cards_indices, len(not_allocated_cards_indices))
+        random_hands = Hands.empty()
+        for player in range(4):
+            if player == inf_set_obs.view_player:
+                random_hands.add_hand(player, inf_set_obs.view_player_hand)
+                logging.getLogger(__name__).info(str(player) + " hand: " + str( [i for i, card in enumerate(inf_set_obs.view_player_hand.asArray())
+                                       if card == 1]))
+            else:
+                logging.getLogger(__name__).info(str(player) + " hand: " +
+                                                 str(sampled_not_allocated_cards[:inf_set_obs.nbr_of_cards_in_hands[player]]))
+                hand = Hand.by_cards(sampled_not_allocated_cards[:inf_set_obs.nbr_of_cards_in_hands[player]])
+                random_hands.add_hand(player, hand)
+                sampled_not_allocated_cards = sampled_not_allocated_cards[
+                                              inf_set_obs.nbr_of_cards_in_hands[player]:]
+
+
+
         trump = obs.trump
-        return cls(hands, trump)
+        return cls(random_hands, trump)

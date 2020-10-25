@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 from jass.game.game_observation import GameObservation
 
@@ -14,6 +16,7 @@ class ISMCTSAlgorithm:
         self._root_node = root_node
         self._tree_policy = tree_policy
         self._default_policy = default_policy
+        self._logger = logging.getLogger(__name__)
 
     def perform(self):
         valid_card_holder = self._sampling()
@@ -24,7 +27,8 @@ class ISMCTSAlgorithm:
         return ValidCardHolder.random_from_obs(self._obs)
 
     def _selection(self, valid_card_holder: ValidCardHolder):
-        node_to_expand = self._tree_policy.selection(self._root_node.get_child_nodes())
+        node_to_expand = self._tree_policy.selection(self._root_node.get_visible_child_nodes(valid_card_holder))
+        self._logger.info("chose card " + str(node_to_expand._node_state._jass_carpet.last_played_card) + " for player " + str(node_to_expand._node_state._jass_carpet.last_player))
         while not node_to_expand.has_visible_unexplored_child_nodes(valid_card_holder) and \
                 node_to_expand.has_visible_explored_child_nodes(valid_card_holder):
             node_to_expand = self._tree_policy.selection(node_to_expand.get_visible_explored_child_nodes(valid_card_holder))
@@ -42,7 +46,16 @@ class ISMCTSAlgorithm:
             node_to_expand.update(node_to_expand.payoff)
 
     def _simulation(self, simulation_root_node: ISMCTSNode, valid_card_holder: ValidCardHolder) -> np.ndarray:
+        self._logger.info("start simulation")
         child_node = simulation_root_node
         while child_node.has_visible_child_nodes(valid_card_holder):
-            child_node = self._default_policy.selection(child_node.get_visible_child_nodes())
+            child_node = self._default_policy.selection(child_node.get_visible_child_nodes(valid_card_holder))
+            self._logger.info("chose card " + str(child_node._node_state._jass_carpet.last_played_card) + " for player " + str(child_node._node_state._jass_carpet.last_player))
+
+        for tricknbr, trick in enumerate(child_node._node_state._jass_carpet._tricks):
+            self._logger.info(str(tricknbr) +" Played cards " + str(trick.asArray()))
+
+        child_node.has_visible_child_nodes(valid_card_holder)
+        child_node.has_visible_child_nodes(valid_card_holder)
+        child_node.has_visible_child_nodes(valid_card_holder)
         return child_node.payoff

@@ -1,37 +1,32 @@
 from __future__ import annotations
 
+import logging
 from typing import List
 
 import numpy as np
+from jass.game.rule_schieber import RuleSchieber
 
 from ismcts.ismcts_tree.ismcts_node_state import ISMCTSNodeState
-from ismcts.jass_stuff.hands import Hands
+from ismcts.jass_stuff.const import EMPTY_TRICK
 from ismcts.jass_stuff.valid_card_holder import ValidCardHolder
 
 
 class ISMCTSNode:
 
-    def __init__(self,  node_state: ISMCTSNodeState, parent_node: ISMCTSNode = None):
+    def __init__(self, node_state: ISMCTSNodeState, parent_node: ISMCTSNode = None):
         self._node_state = node_state
         self._parent_node = parent_node
         self._is_explored = False
-        self._possible_child_nodes: List[ISMCTSNode] = []
+        self._child_nodes: List[ISMCTSNode] = None
         self._nbr_of_node_was_played = 0
-        self._payoff = 0
+        self._win_los_ration = np.array([0, 0])
         self._nbr_of_node_was_visible = 0
-
-    def _determine_possible_child_nodes(self) -> List[ISMCTSNode]:
-        valid_cards = [i for i, card in enumerate(self._node_state.get_valid_cards_of_current_player())]
-        child_nodes = []
-        for valid_card in valid_cards:
-            copy_node_state = self._node_state.copy()
-            copy_node_state.remove_card(valid_card)
-            child_nodes.append(ISMCTSNode(copy_node_state))
-        return child_nodes
+        self._rule = RuleSchieber()
+        self._logger = logging.getLogger(__name__)
 
     def update(self, payoff: np.ndarray) -> None:
         self._nbr_of_node_was_played += 1
-        self._payoff += payoff
+        self._win_los_ration += payoff
         if self._parent_node is not None:
             self._parent_node.update(payoff)
 
@@ -39,30 +34,66 @@ class ISMCTSNode:
         return len(self.get_child_nodes()) != 0
 
     def get_child_nodes(self) -> List[ISMCTSNode]:
-        return self._possible_child_nodes
+        if self._child_nodes is None:
+            self._child_nodes = self._determine_child_nodes()
+        return self._child_nodes
+
+    def _determine_child_nodes(self) -> List[ISMCTSNode]:
+        self._logger.info("Determine Nodes for player " + str(self._node_state._jass_carpet.current_player))
+        cards = [i for i, card in enumerate(self._node_state.get_cards_of_current_player())
+                 if card == 1]
+        self._logger.info(
+            "Cards " + str(cards) + " for player " + str(self._node_state._jass_carpet.current_player))
+        child_nodes = []
+        for card in cards:
+            copy_node_state = self._node_state.copy()
+            copy_node_state.remove_card(card)
+            child_nodes.append(ISMCTSNode(copy_node_state, self))
+        return child_nodes
 
     def has_visible_child_nodes(self, valid_card_holder: ValidCardHolder) -> bool:
         return len(self.get_visible_child_nodes(valid_card_holder)) != 0
 
     def get_visible_child_nodes(self, valid_card_holder: ValidCardHolder) -> List[ISMCTSNode]:
-        return list(filter(lambda child: child.is_visible(valid_card_holder), self._possible_child_nodes))
+        return list(filter(lambda child: child.is_visible(valid_card_holder), self.get_child_nodes()))
 
     def has_visible_explored_child_nodes(self, valid_card_holder: ValidCardHolder) -> bool:
         return len(self.get_visible_explored_child_nodes(valid_card_holder)) != 0
 
     def get_visible_explored_child_nodes(self, valid_card_holder: ValidCardHolder) -> List[ISMCTSNode]:
         return list(filter(lambda child: child.is_visible(valid_card_holder) and child.is_explored,
-                           self._possible_child_nodes))
+                           self.get_child_nodes()))
 
     def has_visible_unexplored_child_nodes(self, valid_card_holder: ValidCardHolder) -> bool:
         return len(self.get_visible_unexplored_child_nodes(valid_card_holder)) != 0
 
     def get_visible_unexplored_child_nodes(self, valid_card_holder: ValidCardHolder) -> List[ISMCTSNode]:
-        return list(filter(lambda child: child.is_visible(valid_card_holder) and not child.is_explore,
-                           self._possible_child_nodes))
+        return list(filter(lambda child: child.is_visible(valid_card_holder) and not child.is_explored,
+                           self.get_child_nodes()))
 
     def is_visible(self, valid_card_holder: ValidCardHolder) -> bool:
-        return self._node_state.information_set.does_contain(valid_card_holder.get_hands())
+        return self._node_state.information_set.covered_by(valid_card_holder.get_hands()) and \
+               self._does_node_represent_valid_card(valid_card_holder)
+
+    def _does_node_represent_valid_card(self, valid_card_holder: ValidCardHolder) -> bool:
+        sampled_hand = valid_card_holder.get_hand(self._parent_node._node_state._jass_carpet.current_player).copy()
+        self._parent_node._node_state._jass_carpet.remove_already_played_card_from(sampled_hand)
+        current_trick = self._parent_node._node_state._jass_carpet.last_trick
+        if current_trick.is_completed:
+            valid_cards = [i for i, card in enumerate(self._rule.get_valid_cards(sampled_hand.asArray(), EMPTY_TRICK, 0,
+                                                     self._parent_node._node_state._jass_carpet.trump))
+                 if card == 1]
+
+            self._logger.info("Card " + str(self.last_played_card) + " -> " + str(self.last_played_card in valid_cards) + "  Valid Cards " + str(valid_cards) + " for player " + str(self._node_state._jass_carpet.current_player))
+            return self.last_played_card in valid_cards
+        else:
+            valid_cards = [i for i, card in enumerate(self._rule.get_valid_cards(sampled_hand.asArray(), current_trick.asArray(),
+                                                                       current_trick.index_of_next_missing_card,
+                                                                       self._parent_node._node_state._jass_carpet.trump))
+                 if card == 1]
+            self._logger.info(
+                "Card " + str(self.last_played_card) + " -> "  + str(self.last_played_card in valid_cards) + " Valid Cards " + str(valid_cards) + " for player " + str(self._node_state._jass_carpet.current_player))
+            return self.last_played_card in valid_cards
 
     def mark_as_explored(self):
         self._is_explored = True
@@ -81,7 +112,7 @@ class ISMCTSNode:
 
     @property
     def nbr_of_node_had_won(self):
-        return self.payoff[0]
+        return self.win_los_ration[0]
 
     @property
     def nbr_of_node_was_visible(self):
@@ -92,6 +123,10 @@ class ISMCTSNode:
         self._nbr_of_node_was_visible = value
 
     @property
+    def win_los_ration(self) -> np.ndarray:
+        return self._win_los_ration
+
+    @property
     def payoff(self) -> np.ndarray:
         return self._node_state.payoff
 
@@ -100,4 +135,4 @@ class ISMCTSNode:
         return self._node_state.last_played_card
 
     def copy(self) -> ISMCTSNode:
-        return ISMCTSNode(self._node_state.copy())
+        return ISMCTSNode(self._node_state.copy(), self._parent_node)

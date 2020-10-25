@@ -35,7 +35,7 @@ class Trick:
     @property
     def index_of_next_missing_card(self):
         if not self.is_completed:
-            np.argwhere(self._played_cards == MISSING_CARD_IN_TRICK)
+            return np.argwhere(self._played_cards == MISSING_CARD_IN_TRICK)[0]
         else:
             return -1
 

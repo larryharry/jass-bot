@@ -8,7 +8,6 @@ class InformationSetObservation:
     def __init__(self):
         self._view_player = 0
         self._view_hand_player = Hand.empty()
-        self._current_player = 0
         self._nbr_of_cards_in_hands = np.full(4, 0)
         self._not_allocated_cards = np.full(36, 0)
 
@@ -27,14 +26,6 @@ class InformationSetObservation:
     @view_player_hand.setter
     def view_player_hand(self, value):
         self._view_hand_player = value
-
-    @property
-    def current_player(self):
-        return self._current_player
-
-    @current_player.setter
-    def current_player(self, value):
-        self._current_player = value
 
     @property
     def not_allocated_cards(self) -> np.ndarray:
@@ -56,7 +47,6 @@ class InformationSetObservation:
         info_set_obs = InformationSetObservation()
         info_set_obs.view_player = self._view_player
         info_set_obs.view_player_hand = self._view_hand_player.copy()
-        info_set_obs.current_player = self._current_player
         info_set_obs.nbr_of_cards_in_hands = self._nbr_of_cards_in_hands.copy()
         info_set_obs.not_allocated_cards = self._not_allocated_cards.copy()
         return info_set_obs

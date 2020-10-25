@@ -1,42 +1,41 @@
 from __future__ import annotations
 from __future__ import annotations
 
-from typing import Set
-
-from ismcts.jass_stuff.hands import Hands
 from ismcts.information_set.information_set_observation import InformationSetObservation
+from ismcts.jass_stuff.hands import Hands
 
 
 class InformationSet:
 
-    def __init__(self, info_set_obs: InformationSetObservation, possible_hands: Set[Hands]):
+    def __init__(self, info_set_obs: InformationSetObservation):
         self._info_set_obs = info_set_obs
-        self._possible_hands = possible_hands
 
-    def does_contain(self, hands: Hands) -> bool:
-        for possible_hands in self._possible_hands:
-            if possible_hands.is_fully_covered_by(hands):
-                return True
-        return False
+    def covered_by(self, hands: Hands) -> bool:
+        cards_to_distribute = self._info_set_obs.not_allocated_cards.copy()
+        for player in range(4):
+            hand = hands.get_hand(player)
+            if self._info_set_obs.nbr_of_cards_in_hands[player] > hand.number_of_cards:
+                return False
 
-    @property
-    def possible_hands(self):
-        return self._possible_hands
+            if player == self._info_set_obs.view_player:
+                if not self._info_set_obs.view_player_hand.is_fully_covered_by(hand):
+                    return False
+            else:
+                number_of_removed_cards = hand.take_cards_from(cards_to_distribute)
+                if number_of_removed_cards != self._info_set_obs.nbr_of_cards_in_hands[player]:
+                    return False
+        return True
 
     @property
     def info_set_obs(self):
         return self._info_set_obs
 
-    def remove_card(self, card: int) -> InformationSet:
-        possible_hands = set({})
-        for hands in self._possible_hands:
-            if hands.does_player_has_card(self._info_set_obs.current_player, card):
-                copy_hands = hands.copy()
-                copy_hands.remove_card_for_player(self._info_set_obs.current_player, card)
-                possible_hands.add(copy_hands)
-        return InformationSet(self._info_set_obs.copy(), possible_hands)
+    def remove_card(self, player, card: int) -> None:
+        if player == self._info_set_obs.view_player:
+            self._info_set_obs.view_player_hand.remove_card(card)
+        else:
+            self._info_set_obs.not_allocated_cards[card] = 0
+        self._info_set_obs.nbr_of_cards_in_hands[player] -= 1
 
     def copy(self) -> InformationSet:
-        info_set_obs = self._info_set_obs.copy()
-        possible_hands = self._possible_hands
-        return InformationSet(info_set_obs, possible_hands)
+        return InformationSet(self._info_set_obs.copy())
