@@ -18,7 +18,6 @@ class TreePolicyUCB1(TreePolicy):
 
     def __init__(self, c: int = 5):
         self._c = c
-        self._logger = logging.getLogger(__name__)
 
     def selection(self, nodes: List[ISMCTSNode]) -> ISMCTSNode:
         node_with_highest_ucb1 = self._determine_node_with_highest_ucb1(nodes)
@@ -26,7 +25,6 @@ class TreePolicyUCB1(TreePolicy):
         return node_with_highest_ucb1
 
     def _determine_node_with_highest_ucb1(self, nodes: List[ISMCTSNode]) -> ISMCTSNode:
-        self._logger.info("nodes_tree_policy " + str(len(nodes)))
         node_with_highest_ucb1 = nodes[0]
         highest_ucb1 = -(sys.maxsize - 1)
         for node in nodes:

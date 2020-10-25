@@ -36,7 +36,12 @@ class ISMCTSNodeState:
     def last_played_card(self) -> int:
         return self._jass_carpet.last_played_card
 
+    @property
+    def jass_carpet(self):
+        return self._jass_carpet
+
     def copy(self) -> ISMCTSNodeState:
         information_set = self._info_set.copy()
         jass_carpet = self._jass_carpet.copy()
         return ISMCTSNodeState(information_set, jass_carpet)
+

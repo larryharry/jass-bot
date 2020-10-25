@@ -40,7 +40,7 @@ class ValidCardHolder:
                                               current_trick.index_of_next_missing_card, self._trump)
 
     def mark_card_as_invalid(self, player: int, card: int) -> None:
-        self.get_hand(player)[card] = 0
+        self.get_hand(player).remove_card(card)
 
     def copy(self) -> ValidCardHolder:
         return ValidCardHolder(self._hands.copy(), self._trump)
@@ -61,17 +61,11 @@ class ValidCardHolder:
         for player in range(4):
             if player == inf_set_obs.view_player:
                 random_hands.add_hand(player, inf_set_obs.view_player_hand)
-                logging.getLogger(__name__).info(str(player) + " hand: " + str( [i for i, card in enumerate(inf_set_obs.view_player_hand.asArray())
-                                       if card == 1]))
             else:
-                logging.getLogger(__name__).info(str(player) + " hand: " +
-                                                 str(sampled_not_allocated_cards[:inf_set_obs.nbr_of_cards_in_hands[player]]))
                 hand = Hand.by_cards(sampled_not_allocated_cards[:inf_set_obs.nbr_of_cards_in_hands[player]])
                 random_hands.add_hand(player, hand)
                 sampled_not_allocated_cards = sampled_not_allocated_cards[
                                               inf_set_obs.nbr_of_cards_in_hands[player]:]
-
-
 
         trump = obs.trump
         return cls(random_hands, trump)

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import logging
 from typing import List
 
 import numpy as np
 from jass.game.rule_schieber import RuleSchieber
 
 from ismcts.ismcts_tree.ismcts_node_state import ISMCTSNodeState
-from ismcts.jass_stuff.const import EMPTY_TRICK
+from ismcts.jass_stuff.const import EMPTY_TRICK, EXISTING_CARD
 from ismcts.jass_stuff.valid_card_holder import ValidCardHolder
 
 
@@ -22,7 +21,6 @@ class ISMCTSNode:
         self._win_los_ration = np.array([0, 0])
         self._nbr_of_node_was_visible = 0
         self._rule = RuleSchieber()
-        self._logger = logging.getLogger(__name__)
 
     def update(self, payoff: np.ndarray) -> None:
         self._nbr_of_node_was_played += 1
@@ -39,11 +37,8 @@ class ISMCTSNode:
         return self._child_nodes
 
     def _determine_child_nodes(self) -> List[ISMCTSNode]:
-        self._logger.info("Determine Nodes for player " + str(self._node_state._jass_carpet.current_player))
         cards = [i for i, card in enumerate(self._node_state.get_cards_of_current_player())
                  if card == 1]
-        self._logger.info(
-            "Cards " + str(cards) + " for player " + str(self._node_state._jass_carpet.current_player))
         child_nodes = []
         for card in cards:
             copy_node_state = self._node_state.copy()
@@ -76,24 +71,18 @@ class ISMCTSNode:
                self._does_node_represent_valid_card(valid_card_holder)
 
     def _does_node_represent_valid_card(self, valid_card_holder: ValidCardHolder) -> bool:
-        sampled_hand = valid_card_holder.get_hand(self._parent_node._node_state._jass_carpet.current_player).copy()
-        self._parent_node._node_state._jass_carpet.remove_already_played_card_from(sampled_hand)
-        current_trick = self._parent_node._node_state._jass_carpet.last_trick
+        parent_jass_carpet = self._parent_node._node_state.jass_carpet
+        sampled_hand = valid_card_holder.get_hand(parent_jass_carpet.current_player).copy()
+        parent_jass_carpet.remove_already_played_card_from(sampled_hand)
+        current_trick = parent_jass_carpet.last_trick
         if current_trick.is_completed:
-            valid_cards = [i for i, card in enumerate(self._rule.get_valid_cards(sampled_hand.asArray(), EMPTY_TRICK, 0,
-                                                     self._parent_node._node_state._jass_carpet.trump))
-                 if card == 1]
+            return self._rule.get_valid_cards(sampled_hand.asArray(), EMPTY_TRICK, 0,
+                                              parent_jass_carpet.trump)[self.last_played_card] == EXISTING_CARD
 
-            self._logger.info("Card " + str(self.last_played_card) + " -> " + str(self.last_played_card in valid_cards) + "  Valid Cards " + str(valid_cards) + " for player " + str(self._node_state._jass_carpet.current_player))
-            return self.last_played_card in valid_cards
         else:
-            valid_cards = [i for i, card in enumerate(self._rule.get_valid_cards(sampled_hand.asArray(), current_trick.asArray(),
-                                                                       current_trick.index_of_next_missing_card,
-                                                                       self._parent_node._node_state._jass_carpet.trump))
-                 if card == 1]
-            self._logger.info(
-                "Card " + str(self.last_played_card) + " -> "  + str(self.last_played_card in valid_cards) + " Valid Cards " + str(valid_cards) + " for player " + str(self._node_state._jass_carpet.current_player))
-            return self.last_played_card in valid_cards
+            return self._rule.get_valid_cards(sampled_hand.asArray(), current_trick.asArray(),
+                                              current_trick.index_of_next_missing_card,
+                                              parent_jass_carpet.trump)[self.last_played_card] == EXISTING_CARD
 
     def mark_as_explored(self):
         self._is_explored = True
