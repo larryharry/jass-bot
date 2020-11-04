@@ -10,11 +10,12 @@ from ismcts.ismcts_card_selector import ISMCTSCardSelector
 
 class AgentISMCTSSchieber(Agent):
 
-    def __init__(self):
+    def __init__(self, max_calculation_time: int = 3):
         # log actions
         self._logger = logging.getLogger(__name__)
         # Use rule object to determine valid actions
         self._rule = RuleSchieber()
+        self._max_calculation_time = max_calculation_time
 
     def action_trump(self, obs: GameObservation) -> int:
         trump = 0
@@ -27,4 +28,4 @@ class AgentISMCTSSchieber(Agent):
         return trump
 
     def action_play_card(self, obs: GameObservation) -> int:
-        return ISMCTSCardSelector(obs).calculateBestCardForCurrentPlayer(3)
+        return ISMCTSCardSelector(obs).calculateBestCardForCurrentPlayer(self._max_calculation_time)
