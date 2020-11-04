@@ -1,6 +1,7 @@
 import logging
 import time
 
+from jass.game.const import card_strings
 from jass.game.game_observation import GameObservation
 
 from ismcts.information_set.information_set_factory import InformationSetFactory
@@ -24,7 +25,7 @@ class ISMCTSCardSelector:
 
     def calculateBestCardForCurrentPlayer(self, search_time_in_sec: int) -> int:
         t_end = time.time() + search_time_in_sec
-        self._logger.debug("calculate best card for player " + str(self._obs.player))
+        self._logger.debug("calculate best card for player {}".format(self._obs.player))
         while True:
             self._ismcts_algorithm.perform()
             if t_end < time.time():
@@ -36,4 +37,6 @@ class ISMCTSCardSelector:
             if subtree_root_node.nbr_of_node_was_played > highest_nbr_of_played_games:
                 highest_nbr_of_played_games = subtree_root_node.nbr_of_node_was_played
                 best_card = subtree_root_node.last_played_card
+
+        self._logger.debug("best card for player {} is {}".format(self._obs.player, card_strings[best_card]))
         return best_card
