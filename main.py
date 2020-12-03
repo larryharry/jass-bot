@@ -4,17 +4,20 @@ from jass.agents.agent_random_schieber import AgentRandomSchieber
 from jass.arena.arena import Arena
 
 from ismcts.agent_ismcts_schieber import AgentISMCTSSchieber
+from ismcts.agent_ismcts_heuristic_trump_schieber import AgentISMCTSHeuristicTrumpSchieber
 
 
 def main():
     # Set the global logging level (Set to debug or info to see more messages)
     logging.basicConfig(level=logging.DEBUG)
-    arena = Arena(1)
+    arena = Arena(5)
 
-    player_1 = AgentRandomSchieber()
-    player_2 = AgentISMCTSSchieber()
-    player_3 = AgentRandomSchieber()
-    player_4 = AgentISMCTSSchieber()
+    # player_1 = AgentRandomSchieber()
+    player_1 = AgentISMCTSHeuristicTrumpSchieber(5)
+    player_2 = AgentISMCTSSchieber(5)
+    # player_3 = AgentRandomSchieber()
+    player_3 = AgentISMCTSHeuristicTrumpSchieber(5)
+    player_4 = AgentISMCTSSchieber(5)
 
     arena.set_players(player_1, player_2, player_3, player_4)
     print('Playing {} games'.format(arena.nr_games_to_play))
