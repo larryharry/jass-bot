@@ -4,7 +4,6 @@ from jass.agents.agent_random_schieber import AgentRandomSchieber
 from jass.arena.arena import Arena
 
 from ismcts.agent_ismcts_schieber import AgentISMCTSSchieber
-from ismcts.agent_ismcts_heuristic_trump_schieber import AgentISMCTSHeuristicTrumpSchieber
 
 
 def main():
@@ -12,11 +11,9 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
     arena = Arena(5)
 
-    # player_1 = AgentRandomSchieber()
-    player_1 = AgentISMCTSHeuristicTrumpSchieber(5)
+    player_1 = AgentRandomSchieber()
     player_2 = AgentISMCTSSchieber(5)
-    # player_3 = AgentRandomSchieber()
-    player_3 = AgentISMCTSHeuristicTrumpSchieber(5)
+    player_3 = AgentRandomSchieber()
     player_4 = AgentISMCTSSchieber(5)
 
     arena.set_players(player_1, player_2, player_3, player_4)
@@ -24,6 +21,7 @@ def main():
     arena.play_all_games()
     print('Average Points Team 0: {:.2f})'.format(arena.points_team_0.mean()))
     print('Average Points Team 1: {:.2f})'.format(arena.points_team_1.mean()))
+
 
 
 if __name__ == '__main__':

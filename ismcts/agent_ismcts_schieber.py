@@ -5,7 +5,7 @@ from jass.game.const import color_masks
 from jass.game.game_observation import GameObservation
 from jass.game.rule_schieber import RuleSchieber
 
-from ismcts.ismcts_card_selector import ISMCTSCardSelector
+from ismcts.ismcts_card_selector_root_parallel_prozess import ISMCTSCardSelector
 
 
 class AgentISMCTSSchieber(Agent):
