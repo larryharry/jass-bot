@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  jass-bot:
+    build: .
+    container_name: jass_bot
+    restart: unless-stopped
+    expose:
+      - "8080"
+    environment:
+      - "VIRTUAL_HOST=HOSTNAME"
+    volumes:
+      - ./app:/app
